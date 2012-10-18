@@ -1,4 +1,4 @@
-# ensembl
+# bio.ensembl
 
 An experimental Clojure API wrapping the excellent Java Ensembl
 library JEnsembl, <http://jensembl.sourceforge.net/>.
