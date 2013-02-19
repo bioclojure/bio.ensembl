@@ -176,6 +176,11 @@
   [translation]
   (.getTranslatedSequence translation))
 
+(defn cds<-aa
+  "Codon start position of amino acid relative to CDS start (1-based)."
+  [aa-pos]
+  (inc (* 3 (dec aa-pos))))
+
 (defn aa-dna
   "Return DNA from CDS for amino acid position."
   [translation aa-pos]
