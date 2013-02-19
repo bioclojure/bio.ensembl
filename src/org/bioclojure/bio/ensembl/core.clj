@@ -1,6 +1,11 @@
 (ns org.bioclojure.bio.ensembl.core
-  (:use [org.bioclojure.bio.ensembl.config :only (data-source)])
-  (:import [uk.ac.roslin.ensembl.dao.database DBRegistry]))
+  (:use [org.bioclojure.bio.ensembl.config :only (data-source)]
+        [clojure.string :only (upper-case)])
+  (:import [uk.ac.roslin.ensembl.dao.database DBRegistry DBSpecies]
+           [uk.ac.roslin.ensembl.model.core
+            DNASequence Feature Gene Species Transcript Translation]
+           [uk.ac.roslin.ensembl.model.variation Variation]
+           [uk.ac.roslin.ensembl.model Coordinate]))
 
 (def ^:dynamic *registry* nil)
 
