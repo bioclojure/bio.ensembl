@@ -3,11 +3,13 @@
         [clojure.string :only (upper-case)])
   (:import [uk.ac.roslin.ensembl.dao.database DBRegistry DBSpecies]
            [uk.ac.roslin.ensembl.model.core
-            DNASequence Feature Gene Species Transcript Translation]
+            DNASequence Feature Gene Species Transcript Translation Chromosome]
+           [uk.ac.roslin.ensembl.datasourceaware.core DATranslation]
            [uk.ac.roslin.ensembl.model.variation Variation]
-           [uk.ac.roslin.ensembl.model Coordinate]))
+           [uk.ac.roslin.ensembl.model Coordinate]
+           [uk.ac.roslin.ensembl.model.database Registry]))
 
-(def ^:dynamic *registry* nil)
+(def ^:dynamic ^Registry *registry* nil)
 
 (defmacro with-registry
   [registry & body]
@@ -26,12 +28,12 @@
 
 (defn- list-species-transform
   [style]
-  (get {:binomial (memfn getSpeciesBinomial)
-        :common   (memfn getCommonName)
-        :compara  (memfn getComparaName)
-        :database (memfn getDatabaseStyleName)
-        :display  (memfn getDisplayName)
-        :short    (memfn getShortName)}
+  (get {:binomial #(.getSpeciesBinomial ^Species %)
+        :common   #(.getCommonName ^Species %)
+        :compara  #(.getComparaName ^Species %)
+        :database #(.getDatabaseStyleName ^Species %)
+        :display  #(.getDisplayName ^Species %)
+        :short    #(.getShortName ^Species %)}
        style
        identity))
 
@@ -41,15 +43,17 @@
 
 (defn species
   "Ensembl species from name or keyword"
+  ^Species
   [species-name]
   (or (.getSpeciesByEnsemblName *registry* (name species-name))
       (.getSpeciesByAlias *registry* (name species-name))))
 
 (defn list-chromosomes
   [species-name]
-  (map #(.getChromosomeName %) (vals (.getChromosomes (species species-name)))))
+  (map #(.getChromosomeName ^Chromosome %) (vals (.getChromosomes (species species-name)))))
 
 (defn chromosome
+  ^Chromosome
   ([species-name chromosome-name]
      (.getChromosomeByName (species species-name) chromosome-name))
   ([species-name chromosome-name ens-version]
@@ -58,16 +62,18 @@
 (defn genes-on-region
   ([species-name chromosome-name begin end]
      (genes-on-region (chromosome species-name chromosome-name) begin end))
-  ([chromosome begin end]
-     (.getGenesOnRegion chromosome (Integer. begin) (Integer. end)))
+  ([^Chromosome chromosome ^Integer begin ^Integer end]
+     (.getGenesOnRegion chromosome begin end))
+     ;(.getGenesOnRegion ^Chromosome chromosome (Integer. ^String
+     ;begin) (Integer. ^String end))
   ([chromosome pos]
      (genes-on-region chromosome pos pos)))
 
 (defn variations-on-region
   ([species-name chromosome-name begin end]
      (variations-on-region (chromosome species-name chromosome-name) begin end))
-  ([chromosome begin end]
-     (.getVariationsOnRegion chromosome (Integer. begin) (Integer. end)))
+  ([^Chromosome chromosome ^Integer begin ^Integer end]
+     (.getVariationsOnRegion chromosome begin end))
   ([chromosome pos]
      (variations-on-region chromosome pos pos)))
 
@@ -86,22 +92,22 @@
 
 (defn transcript-strand
   "Strand of transcript."
-  [transcript]
+  [^Transcript transcript]
   (-> transcript (.getChromosomeMapping) (.getTargetCoordinates) (.getStrand)))
 
 (defn coords-vec
   "Return a vector of coordinates [chr start end strand]."
-  [coords]
-  ((juxt (memfn getStart) (memfn getEnd) (memfn getStrandInt)) coords))
+  [^Coordinate coords]
+  ((juxt #(.getStart ^Coordinate %) #(.getEnd ^Coordinate %) #(.getStrandInt ^Coordinate %)) coords))
 
 (defn transcript-coords
   "Genomic coordinates of transcript start/stop/strand."
-  [transcript]
+  [^Transcript transcript]
   (-> transcript (.getChromosomeMapping) (.getTargetCoordinates)))
 
 (defn transcript-chrom
   "Genomic coordinates of transcript start/stop/strand."
-  [transcript]
+  [^Transcript transcript]
   (-> transcript (.getChromosomeMapping) (.getTarget)))
 
 ;;; Strand predicates
@@ -124,56 +130,55 @@
 ;;; Translation 
 (defn transcript-translation
   "Returns the canonical translation for this transcript (if any)."
-  [transcript]
+  [^Transcript transcript]
   (.getCanonicalTranslation transcript))
 
 (defn protein-sequence
   "Returns the protein sequence for this translation."
-  [translation]
+  [^Translation translation]
   (.getProteinSequence translation))
 
 (defn aa->chromosome
   "Convert AA position to chromosome location"
-  [translation pos]
-  (.getChromosomePositionFromAA translation (Integer. pos)))
+  [^DATranslation translation ^Integer pos]
+  (.getChromosomePositionFromAA translation pos))
 
 (defn aa<-chromosome
   "Convert AA position from chromosome location"
-  [translation pos]
-  (.getAAPositionFromChromosome translation (Integer. pos)))
+  [^DATranslation translation ^Integer pos]
+  (.getAAPositionFromChromosome translation pos))
 
 (defn cds<-chromosome
   "Get position relative to CDS from chromosome location."
-  [translation pos]
-  (.getBasePositionFromChromosome translation (Integer. pos)))
+  [^DATranslation translation ^Integer pos]
+  (.getBasePositionFromChromosome translation pos))
 
 (defn cds->chromosome
   "Get chromosome location from position relative to CDS."
-  [translation pos]
-  (.getChromosomePositionFromBASE translation (Integer. pos)))
-
-(defn cds-length
-  [translation]
-  (.getLength translation))
+  [^DATranslation translation ^Integer pos]
+  (.getChromosomePositionFromBASE translation pos))
 
 (defn transcript<-aa
   "Codon coordinates of amino acid relative to processed transcript."
-  [translation aa-pos]
-  (.getProcessedTranscriptPositionFromAA translation (Integer. aa-pos)))
+  ^Coordinate
+  [^DATranslation translation ^Integer aa-pos]
+  (.getProcessedTranscriptPositionFromAA translation aa-pos))
 
 (defn transcript-cds-start-coord
   "Start codon coordinate relative to processed transcript."
+  ^Coordinate
   [translation]
   (transcript<-aa translation  1))
 
 (defn transcript-cds-start
   "Start codon position relative to processed transcript."
-  [translation]
+  [^DATranslation translation]
   (.getStart (transcript-cds-start-coord translation)))
 
 (defn cds-dna
   "Return BioJava DNASequence object for translated (CDS) region."
-  [translation]
+  ^DNASequence
+  [^DATranslation translation]
   (.getTranslatedSequence translation))
 
 (defn cds<-aa
@@ -194,7 +199,7 @@
 
 (defn cds-length
   "CDS length in processed transcript (including start/stop)."
-  [translation]
+  [^DATranslation translation]
   (.getLength translation))
 
 (defn str-cds-dna
@@ -213,7 +218,7 @@
   (/ (cds-length translation) 3))
 
 (defn ccds-id
-  [transcript]
+  [^Transcript transcript]
   (.getCcdsID transcript))
 
 (defn highest-ensembl-version
@@ -222,9 +227,9 @@
   (.getHighestEnsemblSchemaVersion *registry*))
 
 (defn ensembl-versions
-  "Return a seq of ensembl schema versions"
+  "Return a seq of ensembl schema versions in the registry."
   []
-  (seq (.getKnownSchemaVersions *registry*)))
+  (seq (.getKnownSchemaVersions ^DBRegistry *registry*)))
 
 (defn database
   "Get a single species core database version (or the most recent)
@@ -239,7 +244,7 @@
 
 (defn dna-complement
   "Complement of a org.biojava3.core.sequence.DNASequence"
-  [dna-seq]
+  [^org.biojava3.core.sequence.DNASequence dna-seq]
   (-> dna-seq (.getComplement) (.getViewedSequence)))
 
 
