@@ -204,6 +204,7 @@
 
 (defn str-cds-dna
   "Return string of translated (CDS) region."
+  ^String
   [translation]
   (.getSequenceAsString (cds-dna translation)))
 
