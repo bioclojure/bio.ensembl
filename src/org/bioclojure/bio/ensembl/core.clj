@@ -86,18 +86,16 @@
 (defn genes-on-region
   ([species-name chromosome-name begin end]
      (genes-on-region (chromosome species-name chromosome-name) begin end))
-  ([^Chromosome chromosome ^Integer begin ^Integer end]
-     (.getGenesOnRegion chromosome begin end))
-     ;(.getGenesOnRegion ^Chromosome chromosome (Integer. ^String
-     ;begin) (Integer. ^String end))
+  ([^Chromosome chromosome begin end]
+     (.getGenesOnRegion chromosome (int begin) (int end)))
   ([chromosome pos]
      (genes-on-region chromosome pos pos)))
 
 (defn variations-on-region
   ([species-name chromosome-name begin end]
      (variations-on-region (chromosome species-name chromosome-name) begin end))
-  ([^Chromosome chromosome ^Integer begin ^Integer end]
-     (.getVariationsOnRegion chromosome begin end))
+  ([^Chromosome chromosome begin end]
+     (.getVariationsOnRegion chromosome (int begin) (int end)))
   ([chromosome pos]
      (variations-on-region chromosome pos pos)))
 
@@ -107,12 +105,32 @@
   ([species-name gene-stable-id ens-version]
      (.getGeneByStableID (species species-name) gene-stable-id (str ens-version))))
 
+(defn gene-transcripts
+  ([^Gene gene]
+     (.getTranscripts gene)))
+
 (defn transcript
   "Get transcript by stable ID"
   ([species-name transcript-stable-id]
      (.getTranscriptByStableID (species species-name) transcript-stable-id))
   ([species-name transcript-stable-id ens-version]
      (.getTranscriptByStableID (species species-name) transcript-stable-id (str ens-version))))
+
+(defn gene-stable-id
+  [^DAGene gene]
+  (.getStableID gene))
+
+(defn gene-name
+  [^DAGene gene]
+  (.getDisplayName gene))
+
+(defn gene-description
+  [^Gene gene]
+  (.getDescription gene))
+
+(defn transcript-stable-id
+  [^DATranscript transcript]
+  (.getStableID transcript))
 
 (defn transcript-strand
   "Strand of transcript."
