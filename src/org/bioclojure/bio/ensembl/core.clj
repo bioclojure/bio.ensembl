@@ -214,7 +214,8 @@
   "Return DNA from CDS for amino acid position."
   [translation aa-pos]
   (let [pos (cds<-aa aa-pos)]
-    (subs (str (cds-dna translation)) (dec pos) (+ pos 2))))
+    (when-let [dna (cds-dna translation)]
+      (subs (str dna) (dec pos) (+ pos 2)))))
 
 (defn codon-dna
   "DNA of codon at chromosome position chrom-pos in translation."
