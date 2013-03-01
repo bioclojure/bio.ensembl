@@ -152,6 +152,10 @@
   [^Transcript transcript]
   (-> transcript (.getChromosomeMapping) (.getTarget)))
 
+(defn transcript-biotype
+  [^DATranscript transcript]
+  (.getBiotype transcript))
+
 ;;; Strand predicates
 (defn strand-int+?
   [strand]
@@ -170,10 +174,15 @@
   (= uk.ac.roslin.ensembl.model.Coordinate$Strand/REVERSE_STRAND strand))
 
 ;;; Translation 
-(defn transcript-translation
+(defn transcript-canonical-translation
   "Returns the canonical translation for this transcript (if any)."
   [^Transcript transcript]
   (.getCanonicalTranslation transcript))
+
+(defn transcript-translations
+  "Returns the translations for this transcript (if any)."
+  [^Transcript transcript]
+  (.getTranslations transcript))
 
 (defn protein-sequence
   "Returns the protein sequence for this translation."
@@ -182,29 +191,29 @@
 
 (defn aa->chromosome
   "Convert AA position to chromosome location"
-  [^DATranslation translation ^Integer pos]
-  (.getChromosomePositionFromAA translation pos))
+  [^DATranslation translation pos]
+  (.getChromosomePositionFromAA translation (int pos)))
 
 (defn aa<-chromosome
   "Convert AA position from chromosome location"
-  [^DATranslation translation ^Integer pos]
-  (.getAAPositionFromChromosome translation pos))
+  [^DATranslation translation pos]
+  (.getAAPositionFromChromosome translation (int pos)))
 
 (defn cds<-chromosome
   "Get position relative to CDS from chromosome location."
-  [^DATranslation translation ^Integer pos]
-  (.getBasePositionFromChromosome translation pos))
+  [^DATranslation translation pos]
+  (.getBasePositionFromChromosome translation (int pos)))
 
 (defn cds->chromosome
   "Get chromosome location from position relative to CDS."
-  [^DATranslation translation ^Integer pos]
-  (.getChromosomePositionFromBASE translation pos))
+  [^DATranslation translation pos]
+  (.getChromosomePositionFromBASE translation (int pos)))
 
 (defn transcript<-aa
   "Codon coordinates of amino acid relative to processed transcript."
   ^Coordinate
-  [^DATranslation translation ^Integer aa-pos]
-  (.getProcessedTranscriptPositionFromAA translation aa-pos))
+  [^DATranslation translation aa-pos]
+  (.getProcessedTranscriptPositionFromAA translation (int aa-pos)))
 
 (defn transcript-cds-start-coord
   "Start codon coordinate relative to processed transcript."
