@@ -39,6 +39,12 @@
   [ds]
   (DBRegistry. (data-source ds)))
 
+(defn ensembl-version
+  "Return current Ensembl version of connected database registry for species-name."
+  [species-name]
+  (-> *registry* (.getDatabase (name species-name)) .getDBVersion ))
+
+
 (defn- list-species-transform
   [style]
   (get {:binomial #(.getSpeciesBinomial ^Species %)
@@ -60,6 +66,11 @@
   [species-name]
   (or (.getSpeciesByEnsemblName *registry* (name species-name))
       (.getSpeciesByAlias *registry* (name species-name))))
+
+(defn species-version
+  "Return genome assembly version of species."
+  [species-name]
+  (.getAssembly (species species-name)))
 
 (defn list-chromosomes
   [species-name]
