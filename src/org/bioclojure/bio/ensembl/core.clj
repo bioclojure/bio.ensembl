@@ -9,7 +9,7 @@
            [uk.ac.roslin.ensembl.model Coordinate]
            [uk.ac.roslin.ensembl.model.database Registry]))
 
-(def ^:dynamic ^Registry *registry* nil)
+(defonce ^:dynamic ^Registry *registry* nil)
 
 (defmacro with-registry
   [registry & body]
