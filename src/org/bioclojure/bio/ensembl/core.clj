@@ -1,13 +1,15 @@
 (ns org.bioclojure.bio.ensembl.core
-  (:use [org.bioclojure.bio.ensembl.config :only (data-source)]
-        [clojure.string :only (upper-case)])
-  (:import [uk.ac.roslin.ensembl.dao.database DBRegistry DBSpecies]
+  (:require [clojure.java.io :as io]
+            [clojure.string :refer (upper-case)]
+            [org.bioclojure.bio.ensembl.config :only (data-source)])
+  (:import [uk.ac.roslin.ensembl.config RegistryConfiguration DBConnection$DataSource]
+           [uk.ac.roslin.ensembl.dao.database DBRegistry DBSpecies]
+           [uk.ac.roslin.ensembl.model Coordinate StableID]
+           [uk.ac.roslin.ensembl.model.database Registry]
            [uk.ac.roslin.ensembl.model.core
             DNASequence Feature Gene Species Transcript Translation Chromosome]
-           [uk.ac.roslin.ensembl.datasourceaware.core DATranslation]
            [uk.ac.roslin.ensembl.model.variation Variation]
-           [uk.ac.roslin.ensembl.model Coordinate]
-           [uk.ac.roslin.ensembl.model.database Registry]))
+           [uk.ac.roslin.ensembl.datasourceaware.core DATranslation DAGene DATranscript]))
 
 (defonce ^:dynamic ^Registry *registry* nil)
 
@@ -21,6 +23,17 @@
                   (constantly registry)
                   (when (thread-bound? #'*registry*)
                     (set! *registry* registry))))
+
+(defn local-config
+  [conf-file]
+  (DBRegistry. (doto (RegistryConfiguration.)
+                 (.setDBByFile (io/file conf-file)))
+               true))
+
+(defn data-source
+  [ds]
+  (DBConnection$DataSource/valueOf
+   (.toUpperCase (name ds))))
 
 (defn registry
   [ds]
