@@ -322,4 +322,8 @@
 
   (genes-on-region (chromosome "human" "20") 1 100000)
 
-  )
+  (ensembl-versions)
+
+  ;; local Ensembl connections - for file format see:
+  ;;   http://jensembl.svn.sourceforge.net/viewvc/jensembl/trunk/EnsemblTest/src/main/resources/
+  (set-registry! (local-config "example_local_configuration.properties")))
