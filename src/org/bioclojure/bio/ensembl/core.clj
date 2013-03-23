@@ -156,6 +156,10 @@
   [^DATranscript transcript]
   (.getBiotype transcript))
 
+(defn transcript-gene
+  [^Transcript transcript]
+  (.getGene transcript))
+
 ;;; Strand predicates
 (defn strand-int+?
   [strand]
