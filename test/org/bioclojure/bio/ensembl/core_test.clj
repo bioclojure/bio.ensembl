@@ -1,7 +1,13 @@
 (ns org.bioclojure.bio.ensembl.core-test
-  (:use clojure.test
-        org.bioclojure.bio.ensembl.core))
+  (:require [clojure.test :refer :all]
+            [org.bioclojure.bio.ensembl.core :as ens]))
 
-(deftest a-test
-  (testing "FIXME, I fail."
-    (is (= 0 1))))
+(deftest human-exon-test
+  (testing "Retrieve exon coordinates from human Ensembl database."
+    (ens/with-registry (ens/registry :ensembldb)
+      (let [species "human"
+            gene (first (ens/gene-name->genes species "BRCA2"))
+            ts (ens/gene-transcripts gene)
+            coords (map ens/transcript->exon-coords ts)]
+        (doseq [c coords]
+          (println c))))))

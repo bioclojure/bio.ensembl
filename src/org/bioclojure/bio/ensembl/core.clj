@@ -49,7 +49,7 @@
   [style]
   (get {:binomial #(.getSpeciesBinomial ^Species %)
         :common   #(.getCommonName ^Species %)
-        :compara  #(.getComparaName ^Species %)
+        :compara  #(.getComparaName ^Species % (ensembl-version %))
         :database #(.getDatabaseStyleName ^Species %)
         :display  #(.getDisplayName ^Species %)
         :short    #(.getShortName ^Species %)}
@@ -70,7 +70,7 @@
 (defn species-version
   "Return genome assembly version of species."
   [species-name]
-  (.getAssembly (species species-name)))
+  (.getAssemblyName (species species-name) (ensembl-version species-name)))
 
 (defn list-chromosomes
   [species-name]
@@ -99,6 +99,7 @@
   ([chromosome pos]
      (variations-on-region chromosome pos pos)))
 
+(declare highest-ensembl-version)
 (defn gene
   ([species-name gene-stable-id]
      (.getGeneByStableID (species species-name) gene-stable-id))
@@ -116,6 +117,10 @@
   ([species-name transcript-stable-id ens-version]
      (.getTranscriptByStableID (species species-name) transcript-stable-id (str ens-version))))
 
+(defn exons
+  [transcript]
+  (.getExons transcript))
+
 (defn gene-stable-id
   [^DAGene gene]
   (.getStableID gene))
@@ -123,6 +128,16 @@
 (defn gene-name
   [^DAGene gene]
   (.getDisplayName gene))
+
+(defn gene-name->genes
+  "Retrieve list of Ensembl genes from gene names."
+  ([species-name gene-name]
+     (gene-name->genes species-name gene-name (highest-ensembl-version)))
+  ([species-name gene-name ens-version]
+     (->> (.getGenesForExactName (species species-name) gene-name (str ens-version))
+          (map gene-stable-id)
+          (filter #(.startsWith % "ENS"))
+          (map #(gene species-name % ens-version)))))
 
 (defn gene-description
   [^Gene gene]
@@ -141,6 +156,20 @@
   "Return a vector of coordinates [chr start end strand]."
   [^Coordinate coords]
   ((juxt #(.getStart ^Coordinate %) #(.getEnd ^Coordinate %) #(.getStrandInt ^Coordinate %)) coords))
+
+(defn coords-map
+  "Return a map of coordinate information with chromosome"
+  [x]
+  (let [mapping (.getChromosomeMapping x)
+        coords (.getTargetCoordinates mapping)]
+    {:chr (.getChromosomeName (.getTarget mapping))
+     :start (.getStart coords) :end (.getEnd coords)
+     :strand (.getStrandInt coords)}))
+
+(defn transcript->exon-coords
+  "Convert a transcript into a map of exon coordinates :chr :start :end :strand"
+  [transcript]
+  (map coords-map (exons transcript)))
 
 (defn transcript-coords
   "Genomic coordinates of transcript start/stop/strand."

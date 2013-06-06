@@ -5,7 +5,7 @@
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :repositories [["jensembl" {:url "http://jensembl.sourceforge.net/m2-repo" :checksum :ignore :snapshots false }]
                  ["biojava" {:url "http://www.biojava.org/download/maven/" :checksum :ignore :snapshots false }]]
-  :dependencies [[org.clojure/clojure "1.4.0"]
-                 [uk.ac.roslin/ensembl-data-access "1.15"]
-                 [uk.ac.roslin/ensembl-config "1.70"]]
-  :warn-on-reflection true)
+  :dependencies [[org.clojure/clojure "1.5.1"]
+                 [uk.ac.roslin/ensembl-data-access "1.17"]
+                 [uk.ac.roslin/ensembl-config "1.71"]]
+  :warn-on-reflection false)
