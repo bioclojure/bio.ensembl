@@ -1,4 +1,4 @@
-(defproject org.clojars.intronic/bio.ensembl "0.1.1"
+(defproject org.bioclojure/bio.ensembl "0.2.0"
   :description "Clojure API for Ensembl data access"
   :url "org.clojars.intronic/bio.ensembl"
   :license {:name "Eclipse Public License"
